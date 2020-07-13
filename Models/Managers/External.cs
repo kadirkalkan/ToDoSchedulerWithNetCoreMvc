@@ -25,20 +25,6 @@ namespace PitonProject.Models.Managers
             return returnValue;
         }
 
-        public bool IsAccessible(string pageName, List<WebPage> forbiddenPageList)
-        {
-            bool redirectToIndex = true;
-            foreach (WebPage page in forbiddenPageList)
-            {
-                if (page.PageName.Equals(pageName))
-                {
-                    redirectToIndex = false;
-                    break;
-                }
-            }
-            return redirectToIndex;
-        }
-
         public bool addLog(Enums.EnumClass.LogType logTypeValue = Enums.EnumClass.LogType.info, string logText = "", string className = "-", string methodName = "-")
         {
             bool returnValue = false;
@@ -65,12 +51,6 @@ namespace PitonProject.Models.Managers
                 throw ex;
             }
             return returnValue;
-        }
-
-        internal string GetFormattedTimeString(DateTime time, string type = "MM / dd / yyyy HH:mm")
-        {
-            type = String.IsNullOrEmpty(type) ? "MM / dd / yyyy HH:mm" : type;
-            return time.ToString(type);
         }
     }
 }

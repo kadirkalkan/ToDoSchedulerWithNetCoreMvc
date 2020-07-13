@@ -73,4 +73,3 @@ D:\MyWorks\PitonProject\obj\Debug\netcoreapp3.1\Razor\Views\User\Register.cshtml
 D:\MyWorks\PitonProject\obj\Debug\netcoreapp3.1\Razor\Views\Home\Tasks.cshtml.g.cs
 D:\MyWorks\PitonProject\obj\Debug\netcoreapp3.1\Razor\Views\Home\Edit.cshtml.g.cs
 D:\MyWorks\PitonProject\obj\Debug\netcoreapp3.1\Razor\Views\Shared\_LayoutTaskCrud.cshtml.g.cs
-D:\MyWorks\PitonProject\obj\Debug\netcoreapp3.1\PitonProject.csprojAssemblyReference.cache

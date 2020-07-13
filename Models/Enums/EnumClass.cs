@@ -32,18 +32,5 @@ namespace PitonProject.Models.Enums
             rose,
             primary
         }
-
-        public enum Page
-        {
-            login,
-            forgotPass,
-            repass,
-            index,
-            about,
-            contact,
-            projects,
-            donation,
-            management
-        }
     }
 }
