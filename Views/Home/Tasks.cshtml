@@ -17,7 +17,7 @@
         <div class="form-group">
             <label class="col-md-3 control-label">Başlangıç Tarihi İle Görev Ara</label>
             <div class="col-md-6">
-                <input id="datepicker" name="datepicker" value="@ViewBag.SearchDate"/>
+                <input id="datepicker" name="datepicker" value="@ViewBag.SearchDate" readonly="readonly" />
             </div>
             @if (ViewBag.SearchResult != null)
             {
@@ -31,39 +31,47 @@
 
     @foreach (TaskClass m in Model.taskList)
     {
-        <form class="well form-horizontal bv-form" action=" " method="post" novalidate="novalidate" id="@m.ID">
-            <fieldset>
+        <div class="col-md-11">
+            <a href="/Home/Edit?Id=@m.ID" style="text-decoration:none">
+                <form class="well form-horizontal bv-form" action=" " method="post" novalidate="novalidate" id="@m.ID">
+                    <fieldset>
 
-                <legend>
-                    <h2>
-                        <b>@m.Title</b>
-                        @switch (m.TaskType.TaskTypeText)
-                        {
-                            case "day":<i class='fab fa-google' style='float:right;' title='Günlük Planlama'></i>; break;
-                            case "week": <i class='fab fa-hire-a-helper' style='float:right;' title='Haftalık Planlama'></i>; break;
-                            case "month": <i class='fab fa-autoprefixer' style='float:right;' title='Aylık Planlama'></i>; break;
-                        }
-                    </h2>
-                </legend>
+                        <legend>
+                            <h2>
+                                <b>@m.Title</b>
+                                @switch (m.TaskType.TaskTypeText)
+                                {
+                                    case "day":<i class='fab fa-google' style='float:right;' title='Günlük Planlama'></i>; break;
+                                    case "week": <i class='fab fa-hire-a-helper' style='float:right;' title='Haftalık Planlama'></i>; break;
+                                    case "month": <i class='fab fa-autoprefixer' style='float:right;' title='Aylık Planlama'></i>; break;
+                                }
+                            </h2>
+                        </legend>
 
 
-                <div style="margin-left:2%" class="col-md-8">
-                    <div class="form-group">
-                        <p>@m.Description</p>
-                    </div>
-                </div>
-                <div class="col-md-2" style="text-align:right;">
-                    <p>Başlangıç Tarihi :</p>
-                    <p></p>
-                    <p>Bitiş Tarihi :</p>
-                </div>
-                <div class="col-md-1" style="text-align:center; float:right;">
-                    <p>@m.StartDate.ToShortDateString()</p>
-                    <p></p>
-                    <p>@m.EndDate.ToShortDateString()</p>
-                </div>
-            </fieldset>
-        </form>
+                        <div style="margin-left:2%" class="col-md-8">
+                            <div class="form-group">
+                                <p>@m.Description</p>
+                            </div>
+                        </div>
+                        <div class="col-md-2" style="text-align:right;">
+                            <p>Başlangıç Tarihi :</p>
+                            <p></p>
+                            <p>Bitiş Tarihi :</p>
+                        </div>
+                        <div class="col-md-1" style="text-align:center; float:right;">
+                            <p>@m.StartDate.ToShortDateString()</p>
+                            <p></p>
+                            <p>@m.EndDate.ToShortDateString()</p>
+                        </div>
+                    </fieldset>
+                </form>
+            </a>
+        </div>
+        <div class="col-md-1" style="position:relative; margin-top:7.5%">
+            <a href="/Home/Delete?Id=@m.ID"><i class="far fa-calendar-minus fa-2x" style='float:right; color:darkred' title='Görevi Sil'></i></a>
+        </div>
+
     }
 
     @if (Model.taskList.Count == 0)
@@ -91,9 +99,9 @@
             locale: "tr-tr",
             format: 'dd mmm yyyy',
             close: function (e) {
-                    const form = document.getElementById("search_form");
-                    form.submit();
-                }
-            });
+                const form = document.getElementById("search_form");
+                form.submit();
+            }
+        });
     </script>
 }

@@ -33,44 +33,116 @@ namespace PitonProject.Controllers
             return View(getEmptyTask());
         }
         [HttpPost]
-        public IActionResult Index(TaskClass newTask)
+        public IActionResult Index(TaskCrudViewModel newTaskView)
         {
             fillViewBag();
             try
             {
-                using (var context = new DatabaseContext())
+                if (!string.IsNullOrEmpty(newTaskView.task.Title) && !string.IsNullOrEmpty(newTaskView.task.Description))
                 {
-                    string loggedUserName = ViewBag.user;
-                    newTask.TaskType = context.TaskTypes.FirstOrDefault(x => x.TaskTypeText == newTask.TaskType.TaskTypeText);
-                    newTask.CreatedUser = context.Users.FirstOrDefault(x => x.UserName == loggedUserName);
-                    switch (newTask.TaskType.TaskTypeText)
+                    using (var context = new DatabaseContext())
                     {
-                        case "day": newTask.EndDate = newTask.StartDate.AddDays(1); break;
-                        case "week": newTask.EndDate = newTask.StartDate.AddDays(7); break;
-                        case "month": newTask.EndDate = newTask.StartDate.AddMonths(1); break;
+                        string loggedUserName = ViewBag.user;
+                        newTaskView.task.TaskType = context.TaskTypes.FirstOrDefault(x => x.TaskTypeText == newTaskView.task.TaskType.TaskTypeText);
+                        newTaskView.task.CreatedUser = context.Users.FirstOrDefault(x => x.UserName == loggedUserName);
+                        newTaskView.task.StartDate = DateTime.Parse(newTaskView.formattedStartDate);
+                        switch (newTaskView.task.TaskType.TaskTypeText)
+                        {
+                            case "day": newTaskView.task.EndDate = newTaskView.task.StartDate.AddDays(1); break;
+                            case "week": newTaskView.task.EndDate = newTaskView.task.StartDate.AddDays(7); break;
+                            case "month": newTaskView.task.EndDate = newTaskView.task.StartDate.AddMonths(1); break;
+                        }
+                        context.Tasks.Add(newTaskView.task);
+                        context.SaveChanges();
                     }
-                    context.Tasks.Add(newTask);
-                    context.SaveChanges();
+                    return RedirectToAction("Index","Home", new { @enum = EnumClass.ProcessType.success, @processMessage = "Görev Kaydı Başarılı."});
                 }
-                setProcess(EnumClass.ProcessType.success, "Görev Kaydı Başarılı.");
-                return View(getEmptyTask());
+                else
+                {
+                    setProcess(EnumClass.ProcessType.danger, "Boş Alanları Doldurunuz.");
+                }
             }
             catch (Exception ex)
             {
                 external.addLog(EnumClass.LogType.error, ex.ToString(), "Index Post", "Home");
                 setProcess(EnumClass.ProcessType.danger, "Bir Hatayla Karşılaşıldı");
             }
-            return View(newTask);
+            return View(newTaskView);
         }
 
-        private TaskClass getEmptyTask()
+
+        public IActionResult Edit(int Id)
         {
-            return new TaskClass()
+            fillViewBag();
+            using (var context = new DatabaseContext())
             {
-                TaskType = new TaskType()
+                TaskCrudViewModel taskView = new TaskCrudViewModel();
+                taskView.task = context.Tasks.Include(user => user.CreatedUser).Include(tasktype => tasktype.TaskType).FirstOrDefault(x => x.ID == Id);
+                taskView.formattedStartDate = taskView.task.StartDate.Date.ToString("dd MMM yyyy");
+                return View(taskView);
+            }
+        }
+        [HttpPost]
+        public IActionResult Edit(TaskCrudViewModel newTaskView)
+        {
+            fillViewBag();
+            try
+            {
+                using (var context = new DatabaseContext())
                 {
-                    TaskTypeText = EnumClass.TaskType.day.ToString()
+                    newTaskView.task.TaskType = context.TaskTypes.FirstOrDefault(x => x.TaskTypeText == newTaskView.task.TaskType.TaskTypeText);
+                    newTaskView.task.CreatedUser = context.Users.FirstOrDefault(x => x.ID== newTaskView.task.CreatedUser.ID);
+                    newTaskView.task.StartDate = DateTime.Parse(newTaskView.formattedStartDate);
+                    switch (newTaskView.task.TaskType.TaskTypeText)
+                    {
+                        case "day": newTaskView.task.EndDate = newTaskView.task.StartDate.AddDays(1); break;
+                        case "week": newTaskView.task.EndDate = newTaskView.task.StartDate.AddDays(7); break;
+                        case "month": newTaskView.task.EndDate = newTaskView.task.StartDate.AddMonths(1); break;
+                    }
+                    context.Tasks.Update(newTaskView.task);
+                    context.SaveChanges();
                 }
+                return RedirectToAction("Tasks", "Home", new { @enum = EnumClass.ProcessType.success, @processMessage = "Görev Başarıyla Güncellendi." });
+            }
+            catch (Exception ex)
+            {
+                external.addLog(EnumClass.LogType.error, ex.ToString(), "Edit Post", "Home");
+                setProcess(EnumClass.ProcessType.danger, "Bir Hatayla Karşılaşıldı");
+            }
+            return View(newTaskView);
+        }
+
+        public IActionResult Delete(int Id)
+        {
+            try
+            {
+                using (var context = new DatabaseContext())
+                {
+                    TaskClass removedTask = context.Tasks.FirstOrDefault(x => x.ID == Id);
+                    context.Tasks.Remove(removedTask);
+                    context.SaveChanges();
+                }
+                return RedirectToAction("Tasks", "Home", new { @enum = EnumClass.ProcessType.success, @processMessage = "Görev Başarıyla Silindi." });
+            }
+            catch (Exception ex)
+            {
+                external.addLog(EnumClass.LogType.error, ex.ToString(), "Delete Post", "Home");
+                return RedirectToAction("Tasks", "Home", new { @enum = EnumClass.ProcessType.danger, @processMessage = "Bir Hatayla Karşılaşıldı." });
+            }
+        }
+
+        private TaskCrudViewModel getEmptyTask()
+        {
+            return new TaskCrudViewModel()
+            {
+                task = new TaskClass()
+                {
+                    TaskType = new TaskType()
+                    {
+                        TaskTypeText = EnumClass.TaskType.day.ToString()
+                    }
+                },
+                formattedStartDate = DateTime.Now.Date.ToString("dd MMM yyyy")
             };
         }
 
@@ -80,8 +152,8 @@ namespace PitonProject.Controllers
             setProcess(@enum, processMessage);
             using (var context = new DatabaseContext())
             {
-                
-                ICollection<TaskClass> taskListForView = context.Tasks.Include(user => user.CreatedUser).Include(tasktype=> tasktype.TaskType).Where(x => x.CreatedUser.ID == getLoggedUser().ID).ToList();
+
+                ICollection<TaskClass> taskListForView = context.Tasks.Include(user => user.CreatedUser).Include(tasktype => tasktype.TaskType).Where(x => x.CreatedUser.ID == getLoggedUser().ID).ToList();
                 TasksViewModel tasksView = new TasksViewModel() { taskList = taskListForView };
                 ViewBag.SearchDate = DateTime.Now.Date.ToString("dd MMM yyyy");
                 return View(tasksView);
@@ -94,7 +166,7 @@ namespace PitonProject.Controllers
             fillViewBag();
             using (var context = new DatabaseContext())
             {
-                ICollection<TaskClass> taskListForView = context.Tasks.Include(user => user.CreatedUser).Include(tasktype => tasktype.TaskType).Where(x=> x.StartDate == datepicker && x.CreatedUser.ID == getLoggedUser().ID).ToList();
+                ICollection<TaskClass> taskListForView = context.Tasks.Include(user => user.CreatedUser).Include(tasktype => tasktype.TaskType).Where(x => x.StartDate == datepicker && x.CreatedUser.ID == getLoggedUser().ID).ToList();
                 TasksViewModel tasksView = new TasksViewModel() { taskList = taskListForView };
                 ViewBag.SearchResult = datepicker.ToShortDateString() + " Tarihli Kayıtlar Görüntüleniyor.";
                 ViewBag.SearchDate = datepicker.Date.ToString("dd MMM yyyy");

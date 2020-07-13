@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using PitonProject.Models.Entities;
+using PitonProject.Models.Enums;
 using PitonProject.Models.Managers;
 
 namespace PitonProject.Controllers
@@ -16,8 +17,9 @@ namespace PitonProject.Controllers
     {
         External external = new External();
         [HttpGet]
-        public IActionResult Login()
+        public IActionResult Login(EnumClass.ProcessType @enum = EnumClass.ProcessType.initialize, string processMessage = "")
         {
+            setProcess(@enum, processMessage);
             return View();
         }
 
